@@ -1,0 +1,11 @@
+pandas==2.3.3
+numpy==2.5.3
+lightgbm==4.6.0
+jpholiday==1.0.3
+certifi==2026.7.22
+python-dateutil==2.9.0.post0
+pytz==2026.4
+tzdata==2026.4
+scipy==1.18.1
+openpyxl==3.1.5
+et_xmlfile==2.0.0

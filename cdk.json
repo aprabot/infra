@@ -1,0 +1,9 @@
+{
+  "app": "npx tsc && node dist/bin/aprabot.js",
+  "versionReporting": false,
+  "pathMetadata": false,
+  "assetMetadata": false,
+  "context": {
+    "@aws-cdk/core:newStyleStackSynthesis": true
+  }
+}

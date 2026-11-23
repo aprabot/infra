@@ -1,0 +1,8 @@
+node_modules/
+dist/
+cdk.out/
+.build/
+config.local.json
+import-*.json
+cdk.context.json
+__pycache__/
