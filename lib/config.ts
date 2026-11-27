@@ -19,6 +19,8 @@ export interface Stage {
   userPoolClientId: string;
   /** Keep the site out of search engines. */
   noindex: boolean;
+  /** Two-step sign-in (authenticator app): required ("ON") or switched off ("OFF"). */
+  mfa: 'ON' | 'OFF';
 }
 
 /** Everything a stage needs to know about itself is in stages.json, committed. */

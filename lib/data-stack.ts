@@ -59,8 +59,8 @@ export class DataStack extends Stack {
       userPoolName,
       usernameAttributes: ['email'],
       autoVerifiedAttributes: ['email'],
-      mfaConfiguration: 'ON',
-      enabledMfas: ['SOFTWARE_TOKEN_MFA'],
+      mfaConfiguration: s.mfa,
+      ...(s.mfa === 'ON' ? { enabledMfas: ['SOFTWARE_TOKEN_MFA'] } : {}),
       userPoolTier: 'ESSENTIALS',
       policies: { passwordPolicy: {
         minimumLength: 8, requireUppercase: true, requireLowercase: true, requireNumbers: true,

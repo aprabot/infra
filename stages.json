@@ -11,7 +11,8 @@
     "userPoolId": "us-east-1_fb34nECGY",
     "userPoolClientId": "5g9h8366bt5j8el588eh3lh5n4",
     "noindex": false,
-    "apiId": "ktksptlz75"
+    "apiId": "ktksptlz75",
+    "mfa": "ON"
   },
   "beta": {
     "name": "beta",
@@ -23,6 +24,7 @@
     "certificateArn": "",
     "userPoolId": "us-east-1_YlvTY5frH",
     "userPoolClientId": "3r235e164nllrj8j1t0qd8j7vf",
-    "noindex": true
+    "noindex": true,
+    "mfa": "OFF"
   }
 }
