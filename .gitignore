@@ -6,3 +6,4 @@ config.local.json
 import-*.json
 cdk.context.json
 __pycache__/
+cdk.out.*/

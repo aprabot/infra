@@ -1,0 +1,28 @@
+{
+  "prod": {
+    "name": "prod",
+    "account": "751835847089",
+    "region": "us-east-1",
+    "domains": [
+      "aprabot.com",
+      "www.aprabot.com"
+    ],
+    "certificateArn": "",
+    "userPoolId": "us-east-1_fb34nECGY",
+    "userPoolClientId": "5g9h8366bt5j8el588eh3lh5n4",
+    "noindex": false,
+    "apiId": "ktksptlz75"
+  },
+  "beta": {
+    "name": "beta",
+    "account": "760541124025",
+    "region": "us-east-1",
+    "domains": [
+      "beta.aprabot.com"
+    ],
+    "certificateArn": "",
+    "userPoolId": "us-east-1_YlvTY5frH",
+    "userPoolClientId": "3r235e164nllrj8j1t0qd8j7vf",
+    "noindex": true
+  }
+}

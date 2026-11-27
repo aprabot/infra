@@ -4,13 +4,16 @@ import { CfnTable } from 'aws-cdk-lib/aws-dynamodb';
 import { CfnQueue } from 'aws-cdk-lib/aws-sqs';
 import { CfnUserPool, CfnUserPoolClient } from 'aws-cdk-lib/aws-cognito';
 import { Construct } from 'constructs';
-import { bucketName, queueName, tableName, userPoolName } from './config';
+import { bucketName, origins, queueName, Stage, tableName, userPoolName } from './config';
+
+export interface DataStackProps extends StackProps { stage: Stage }
 
 /** Everything that holds data or sign-ins. Deliberately its own stack with no
  *  exports, so no application deploy can touch it; every resource is RETAINed. */
 export class DataStack extends Stack {
-  constructor(scope: Construct, id: string, props: StackProps) {
+  constructor(scope: Construct, id: string, props: DataStackProps) {
     super(scope, id, props);
+    const s = props.stage;
     const keep = <T extends CfnResource>(logicalId: string, r: T): T => {
       r.overrideLogicalId(logicalId);
       r.applyRemovalPolicy(RemovalPolicy.RETAIN);
@@ -18,7 +21,7 @@ export class DataStack extends Stack {
     };
 
     keep('ForecastBucket', new CfnBucket(this, 'ForecastBucket', {
-      bucketName,
+      bucketName: bucketName(s),
       bucketEncryption: { serverSideEncryptionConfiguration: [{
         bucketKeyEnabled: false, serverSideEncryptionByDefault: { sseAlgorithm: 'AES256' },
       }] },
@@ -28,7 +31,7 @@ export class DataStack extends Stack {
       ownershipControls: { rules: [{ objectOwnership: 'BucketOwnerEnforced' }] },
       corsConfiguration: { corsRules: [{
         allowedHeaders: ['*'], allowedMethods: ['PUT', 'GET', 'HEAD'],
-        allowedOrigins: ['https://aprabot.com', 'https://www.aprabot.com'],
+        allowedOrigins: origins(s),
         exposedHeaders: ['ETag'], maxAge: 3000,
       }] },
     })).addPropertyOverride('BucketEncryption.ServerSideEncryptionConfiguration.0.BlockedEncryptionTypes',

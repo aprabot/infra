@@ -1,23 +1,40 @@
 # APRABot infrastructure (AWS CDK)
 
-Defines the AWS backend that was previously created by hand. One account, one region (`us-east-1`).
+Defines APRABot's AWS backend and website hosting, in two stages that are separate AWS accounts in
+one organization (`o-bgz7rldcao`), both in `us-east-1`:
+
+| Stage | Account | Site | Notes |
+|---|---|---|---|
+| `prod` | 751835847089 (management) | aprabot.com | Originally built by hand; imported into CloudFormation on 2026-11-27 |
+| `beta` | 760541124025 (`aprabot-beta`) | beta.aprabot.com | Own Cognito pool, API, data; started empty |
+
+Per-stage values (account, domains, certificate, Cognito IDs) are in `stages.json`. Pick a stage with
+`-c stage=prod` (the default) or `-c stage=beta`. Stack names are the same in both accounts.
 
 | Stack | Contents |
 |---|---|
 | `AprabotData` | S3 bucket, DynamoDB table, SQS queue, Cognito user pool and web client |
 | `AprabotApp` | 10 Lambdas, 3 IAM roles, HTTP API (routes, integrations, JWT authorizer), API permissions, queue trigger |
+| `AprabotSite` | Website hosting: private S3 bucket, CloudFront (Pages-style URLs, security headers; noindex on beta) |
+| `AprabotCi` | GitHub OIDC provider and the `aprabot-github-deploy` role the pipeline uses. Deployed by hand only |
 
-Every resource is retained if it leaves a template or a stack is deleted, and both stacks turn on
-termination protection. The stacks share no exports, so deploying the app can't touch the data.
+Data and app resources are retained if they leave a template or a stack is deleted, and the stacks
+turn on termination protection. The stacks share no exports, so deploying the app can't touch the data.
+`AprabotApp` needs the stage's Cognito IDs in `stages.json`, so a new stage deploys `AprabotData` first.
 
-The resources **already exist**, so they have to be *imported* (below). A plain `cdk deploy` before
-the import fails with "already exists" errors.
+## Pipeline
 
-This replaces `aprabot/aprabot-infra`, an August 2026 reference snapshot (5 Lambdas, 8 routes) that was
-not meant to be deployed.
+`.github/workflows/deploy.yml` in **aprabot/homepage** runs on every push to its `main` (or by hand,
+e.g. after a change here: Actions → Deploy → Run workflow):
 
-Not managed here: the website (GitHub Pages), DNS, Secrets Manager values (created at run time by
-`amplify-oauth`), objects in S3, CloudWatch log groups (created by Lambda), and Bedrock model access.
+1. **beta**: package the Lambdas from that homepage commit, `cdk deploy` the three stacks with
+   `-c stage=beta`, publish the website (`scripts/publish-site.sh`, which swaps in beta's API and
+   Cognito IDs and adds a badge and noindex), then `scripts/smoke.sh`.
+2. **prod**: waits for approval on the `production` environment, then the same with `-c stage=prod`.
+
+The jobs sign in with OIDC (no stored keys); each account's role only trusts its own GitHub environment.
+Not managed here: DNS (GoDaddy), Secrets Manager values (created at run time by `amplify-oauth`),
+objects in S3, CloudWatch log groups, and Bedrock model access.
 
 ## Setup
 
@@ -34,7 +51,7 @@ npm run verify    # synthesizes, then compares every property with live AWS (rea
 
 `verify` must report `0 difference(s)` before importing.
 
-## First-time adoption (changes AWS; do it once)
+## First-time adoption of prod (done 2026-11-27; kept for reference)
 
 ```bash
 npx cdk bootstrap aws://751835847089/us-east-1   # creates CDKToolkit: an S3 bucket, an ECR repo, IAM roles
@@ -53,13 +70,18 @@ that code, change something that is packaged, or update that function once with 
 
 ## Day to day
 
+Normally the pipeline deploys. To look at or deploy one stage by hand (beta needs credentials for
+its account, e.g. the organization's `OrganizationAccountAccessRole`):
+
 ```bash
-npm run package           # or: npm run package -- chat-api
-npx cdk diff AprabotApp   # always read this first
-npx cdk deploy AprabotApp
+npm run package                          # or: npm run package -- chat-api
+npx cdk diff -c stage=beta               # always read this first
+npx cdk deploy AprabotApp -c stage=beta
+scripts/publish-site.sh beta             # website only
+scripts/smoke.sh beta
 ```
 
-After adoption, change Lambda settings, routes and IAM here rather than in the console or with
+Change Lambda settings, routes and IAM here rather than in the console or with
 `aws lambda update-function-code`; CloudFormation doesn't see those edits and may overwrite them.
 
 As of 2026-11-22, live code is older than homepage for `amplify-campaigns` and `amplify-sync-worker`,
